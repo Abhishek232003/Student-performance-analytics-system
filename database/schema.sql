@@ -76,3 +76,12 @@ CREATE TABLE Alerts_log (
   FOREIGN KEY (student_id) REFERENCES Students(student_id)
 );
 
+ALTER TABLE Academic_records
+ADD CHECK (marks BETWEEN 0 AND 100),
+ADD CHECK (attendance BETWEEN 0 AND 100);
+
+CREATE INDEX idx_academic_student ON Academic_records(student_id);
+CREATE INDEX idx_ml_student ON Ml_predictions(student_id);
+CREATE INDEX idx_rec_student ON Student_course_recommendations(student_id);
+CREATE INDEX idx_alert_student ON Alerts_log(student_id);
+
