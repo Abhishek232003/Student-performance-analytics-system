@@ -1,0 +1,4 @@
+venv/
+.env
+db_seeding/seed_real_users.sql
+
