@@ -22,7 +22,7 @@ def predict_risk(data):
 
     if probability < 0.33:
         risk_level = "Low"
-    elif probability < 0.50:
+    elif probability < 0.40:
         risk_level = "Medium"
     else:
         risk_level = "High"
