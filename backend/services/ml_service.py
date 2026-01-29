@@ -11,10 +11,6 @@ MODEL_PATH = os.path.join(
 model = joblib.load(MODEL_PATH)
 
 def predict_risk(data):
-    """
-    Predict student risk using trained ML model
-    """
-
     features = [[
         data["attendance"],
         data["internal_marks"],
@@ -22,21 +18,19 @@ def predict_risk(data):
         data["behavior"]
     ]]
 
-   # Get probability of High Risk (class = 1)
-probability = model.predict_proba(features)[0][1]
+    probability = model.predict_proba(features)[0][1]
 
-# Convert probability to risk level
-if probability < 0.33:
-    risk_level = "Low"
-elif probability < 0.66:
-    risk_level = "Medium"
-else:
-    risk_level = "High"
+    if probability < 0.33:
+        risk_level = "Low"
+    elif probability < 0.66:
+        risk_level = "Medium"
+    else:
+        risk_level = "High"
 
     return {
-       "probability": round(probability, 2),
-       "risk_level": risk_level
-}
+        "probability": round(probability, 2),
+        "risk_level": risk_level
+    }
 
 
 
