@@ -33,9 +33,9 @@ elif probability < 0.66:
 else:
     risk_level = "High"
 
-return {
-    "probability": round(probability, 2),
-    "risk_level": risk_level
+    return {
+       "probability": round(probability, 2),
+       "risk_level": risk_level
 }
 
 
