@@ -22,8 +22,22 @@ def predict_risk(data):
         data["behavior"]
     ]]
 
-    prediction = model.predict(features)
-    return int(prediction[0])
+   # Get probability of High Risk (class = 1)
+probability = model.predict_proba(features)[0][1]
+
+# Convert probability to risk level
+if probability < 0.33:
+    risk_level = "Low"
+elif probability < 0.66:
+    risk_level = "Medium"
+else:
+    risk_level = "High"
+
+return {
+    "probability": round(probability, 2),
+    "risk_level": risk_level
+}
+
 
 
    
