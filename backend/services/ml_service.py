@@ -20,7 +20,10 @@ def predict_risk(data):
 
     probability = model.predict_proba(features)[0][1]
 
-    if probability < 0.33:
+    # 👇 ADD THIS LINE
+    print("Probability =", probability)
+
+    if probability < 0.30:
         risk_level = "Low"
     elif probability < 0.40:
         risk_level = "Medium"
