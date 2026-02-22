@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+@layer utilities {
+  .animate-fade-in {
+    animation: fadeIn 0.8s ease-out both;
+  }
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .card-blue {
+    @apply bg-gradient-to-br from-blue-600 to-blue-800 p-6 rounded-xl shadow-lg
+           transform transition-all duration-300 hover:-translate-y-2
+           hover:shadow-2xl hover:scale-105 cursor-pointer;
+  }
+
+  .card-green {
+    @apply bg-gradient-to-br from-green-600 to-green-800 p-6 rounded-xl shadow-lg
+           transform transition-all duration-300 hover:-translate-y-2
+           hover:shadow-2xl hover:scale-105 cursor-pointer;
+  }
+
+  .card-purple {
+    @apply bg-gradient-to-br from-purple-600 to-purple-800 p-6 rounded-xl shadow-lg
+           transform transition-all duration-300 hover:-translate-y-2
+           hover:shadow-2xl hover:scale-105 cursor-pointer;
+  }
+
+    .card-yellow {
+    @apply bg-gradient-to-br from-yellow-600 to-yellow-800 p-6 rounded-xl shadow-lg
+           transform transition-all duration-300 hover:-translate-y-2
+           hover:shadow-2xl hover:scale-105 cursor-pointer;
+  }
+
+  .card-teal {
+    @apply bg-gradient-to-br from-teal-600 to-teal-800 p-6 rounded-xl shadow-lg
+           transform transition-all duration-300 hover:-translate-y-2
+           hover:shadow-2xl hover:scale-105 cursor-pointer;
+  }
+
+  .card-indigo {
+    @apply bg-gradient-to-br from-indigo-600 to-indigo-800 p-6 rounded-xl shadow-lg
+           transform transition-all duration-300 hover:-translate-y-2
+           hover:shadow-2xl hover:scale-105 cursor-pointer;
+  }
+
+  .card-red {
+    @apply bg-gradient-to-br from-red-600 to-red-800 p-6 rounded-xl shadow-lg
+           transform transition-all duration-300 hover:-translate-y-2
+           hover:shadow-2xl hover:scale-105 cursor-pointer;
+  }
+
+  .card-gray {
+    @apply bg-gradient-to-br from-gray-600 to-gray-800 p-6 rounded-xl shadow-lg
+           transform transition-all duration-300 hover:-translate-y-2
+           hover:shadow-2xl hover:scale-105 cursor-pointer;
+  }
+
+  .card-orange {
+    @apply bg-gradient-to-br from-orange-600 to-orange-800 p-6 rounded-xl shadow-lg
+           transform transition-all duration-300 hover:-translate-y-2
+           hover:shadow-2xl hover:scale-105 cursor-pointer;
+  }
+
+}
