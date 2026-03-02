@@ -6,25 +6,66 @@ auth_bp = Blueprint("auth", __name__)
 @auth_bp.route("/login", methods=["POST"])
 def login():
     data = request.json
-    email = data.get("email")
+    user_id = data.get("user_id")
     password = data.get("password")
+
+    if not user_id or not password:
+        return jsonify({"error": "Missing credentials"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
+    # Step 1: Check user credentials
     cursor.execute(
-        "SELECT * FROM Users WHERE email=%s AND password=%s",
-        (email, password)
+        "SELECT * FROM Users WHERE user_id=%s AND password=%s",
+        (user_id, password)
     )
     user = cursor.fetchone()
 
+    if not user:
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "Invalid credentials"}), 401
+
+    # Step 2: If teacher, fetch teacher profile
+    if user["role"] == "teacher":
+        cursor.execute("""
+            SELECT 
+                t.teacher_id,
+                t.name,
+                t.email,
+                t.photo_url,
+                d.department_name,
+                s.section_name
+            FROM Teachers t
+            JOIN Departments d ON t.department_id = d.department_id
+            JOIN Sections s ON t.section_id = s.section_id
+            WHERE t.user_id = %s
+        """, (user_id,))
+        
+        teacher = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "user_id": user["user_id"],
+            "role": user["role"],
+            "teacher_id": teacher["teacher_id"],
+            "name": teacher["name"],
+            "email": teacher["email"],
+            "photo_url": teacher["photo_url"],
+            "department": teacher["department_name"],
+            "section": teacher["section_name"]
+        })
+
+    # Step 3: If student (future use)
     cursor.close()
     conn.close()
-
-    if not user:
-        return jsonify({"error": "Invalid credentials"}), 401
 
     return jsonify({
         "user_id": user["user_id"],
         "role": user["role"]
     })
+
+

@@ -7,6 +7,7 @@ from routes.student_routes import student_bp
 from routes.request_routes import request_bp
 from routes.announcement_routes import announcement_bp
 from routes.calendar import calendar_bp
+from routes.teacher_routes import teacher_bp
 
 load_dotenv()
 
@@ -19,6 +20,7 @@ app.register_blueprint(student_bp, url_prefix="/api/students")
 app.register_blueprint(request_bp, url_prefix="/api/requests")
 app.register_blueprint(announcement_bp, url_prefix="/api/announcements")
 app.register_blueprint(calendar_bp, url_prefix="/api/calendar")
+app.register_blueprint(teacher_bp, url_prefix="/teacher")
 
 
 
