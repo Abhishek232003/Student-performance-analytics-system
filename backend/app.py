@@ -11,7 +11,7 @@ from routes.teacher_routes import teacher_bp
 
 load_dotenv()
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static")
 CORS(app)
 
 # Register routes
