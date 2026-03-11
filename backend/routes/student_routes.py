@@ -37,7 +37,7 @@ def get_student_analysis():
             internal_marks,
             assignment_score,
             behavior_score
-        FROM Academic_Records ar
+        FROM Academic_records ar
         JOIN Subjects s ON ar.subject_id = s.subject_id
         WHERE ar.student_id = %s
         AND s.subject_name = %s
@@ -83,5 +83,4 @@ def predict_student_risk():
         return jsonify({
             "error": str(e)
         }), 500
-    
     
