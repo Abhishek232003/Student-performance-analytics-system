@@ -37,7 +37,6 @@ def get_student_dashboard(student_id):
 
     return jsonify(student)
 
-
 # ==============================
 # 2️⃣ Create Student Request
 # ==============================
@@ -48,22 +47,19 @@ def create_request():
 
     student_id = data.get("student_id")
     teacher_id = data.get("teacher_id")
-    title = data.get("title")
-    category = data.get("category")
     description = data.get("description")
-    risk = data.get("risk")
 
-    if not student_id or not teacher_id or not title:
+    if not student_id or not teacher_id or not description:
         return jsonify({"error": "Missing required fields"}), 400
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
     cursor.execute("""
-        INSERT INTO Requests 
-        (student_id, teacher_id, title, category, description, risk, status)
-        VALUES (%s, %s, %s, %s, %s, %s, 'Pending')
-    """, (student_id, teacher_id, title, category, description, risk))
+        INSERT INTO Requests
+        (student_id, teacher_id, description, status)
+        VALUES (%s, %s, %s, 'Pending')
+    """, (student_id, teacher_id, description))
 
     conn.commit()
 
@@ -71,7 +67,6 @@ def create_request():
     conn.close()
 
     return jsonify({"message": "Request created successfully"})
-
 
 # ==============================
 # 3️⃣ Get Student Requests
@@ -146,3 +141,42 @@ def get_student_announcements(student_id):
     conn.close()
 
     return jsonify(announcements)
+
+# ==============================
+# 5️⃣ Get Teachers for Student
+# ==============================
+@student_portal_bp.route("/teachers/<int:student_id>", methods=["GET"])
+def get_teachers_for_student(student_id):
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # find student's section
+    cursor.execute("""
+        SELECT section_id
+        FROM Students
+        WHERE student_id = %s
+    """, (student_id,))
+
+    student = cursor.fetchone()
+
+    if not student:
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "Student not found"}), 404
+
+    section_id = student["section_id"]
+
+    # get teachers for that section
+    cursor.execute("""
+        SELECT teacher_id, name
+        FROM Teachers
+        WHERE section_id = %s
+    """, (section_id,))
+
+    teachers = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(teachers)
