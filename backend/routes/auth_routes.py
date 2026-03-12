@@ -5,21 +5,27 @@ auth_bp = Blueprint("auth", __name__)
 
 @auth_bp.route("/login", methods=["POST"])
 def login():
+
     data = request.json
     user_id = data.get("user_id")
     password = data.get("password")
+    role = data.get("role")   # 👈 get role from frontend
 
-    if not user_id or not password:
+    if not user_id or not password or not role:
         return jsonify({"error": "Missing credentials"}), 400
+
+    # convert frontend role to database role
+    expected_role = "teacher" if role == "Faculty" else "student"
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # Step 1: Check user credentials
+    # STRICT LOGIN CHECK
     cursor.execute(
-        "SELECT * FROM Users WHERE user_id=%s AND password=%s",
-        (user_id, password)
+        "SELECT * FROM Users WHERE user_id=%s AND password=%s AND role=%s",
+        (user_id, password, expected_role)
     )
+
     user = cursor.fetchone()
 
     if not user:
@@ -27,8 +33,12 @@ def login():
         conn.close()
         return jsonify({"error": "Invalid credentials"}), 401
 
-    # Step 2: If teacher, fetch teacher profile
-    if user["role"] == "teacher":
+
+    # =========================
+    # TEACHER LOGIN
+    # =========================
+    if expected_role == "teacher":
+
         cursor.execute("""
             SELECT 
                 t.teacher_id,
@@ -42,7 +52,7 @@ def login():
             JOIN Sections s ON t.section_id = s.section_id
             WHERE t.user_id = %s
         """, (user_id,))
-        
+
         teacher = cursor.fetchone()
 
         cursor.close()
@@ -50,7 +60,7 @@ def login():
 
         return jsonify({
             "user_id": user["user_id"],
-            "role": user["role"],
+            "role": "teacher",
             "teacher_id": teacher["teacher_id"],
             "name": teacher["name"],
             "email": teacher["email"],
@@ -59,13 +69,34 @@ def login():
             "section": teacher["section_name"]
         })
 
-    # Step 3: If student (future use)
-    cursor.close()
-    conn.close()
 
-    return jsonify({
-        "user_id": user["user_id"],
-        "role": user["role"]
-    })
+    # =========================
+    # STUDENT LOGIN
+    # =========================
+    if expected_role == "student":
 
+        cursor.execute("""
+            SELECT 
+                student_id,
+                name,
+                email,
+                section_id
+            FROM Students
+            WHERE user_id = %s
+        """, (user_id,))
 
+        student = cursor.fetchone()
+
+        cursor.close()
+        conn.close()
+
+        return jsonify({
+            "user_id": user["user_id"],
+            "role": "student",
+            "student_id": student["student_id"],
+            "name": student["name"],
+            "email": student["email"],
+            "section_id": student["section_id"]
+        })
+    
+    
