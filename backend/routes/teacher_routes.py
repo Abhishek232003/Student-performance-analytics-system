@@ -195,3 +195,58 @@ def notify_student():
         "email": student["email"]
     })
 
+# ==============================
+# 7️⃣ Get Requests for Teacher
+# ==============================
+@teacher_bp.route("/requests/<int:teacher_id>", methods=["GET"])
+def get_teacher_requests(teacher_id):
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        SELECT
+            id,
+            student_id,
+            description,
+            status
+        FROM Requests
+        WHERE teacher_id = %s
+        ORDER BY id DESC
+    """, (teacher_id,))
+
+    requests = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify(requests)
+
+# ==============================
+# 8️⃣ Update Request Status
+# ==============================
+@teacher_bp.route("/requests/update/<int:request_id>", methods=["PUT"])
+def update_request_status(request_id):
+
+    data = request.json
+    status = data.get("status")
+
+    if status not in ["Approved", "Rejected"]:
+        return jsonify({"error": "Invalid status"}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        UPDATE Requests
+        SET status = %s
+        WHERE id = %s
+    """, (status, request_id))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({"message": "Request updated successfully"})
+
