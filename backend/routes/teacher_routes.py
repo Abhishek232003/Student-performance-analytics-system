@@ -250,3 +250,48 @@ def update_request_status(request_id):
 
     return jsonify({"message": "Request updated successfully"})
 
+# ==============================
+# 9️⃣ Send Announcement
+# ==============================
+@teacher_bp.route("/announcements", methods=["POST"])
+def send_announcement():
+
+    data = request.json
+    teacher_id = data.get("teacher_id")
+    message = data.get("message")
+
+    if not teacher_id or not message:
+        return jsonify({"error": "Missing fields"}), 400
+
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    # find teacher section
+    cursor.execute("""
+        SELECT section_id
+        FROM Teachers
+        WHERE teacher_id = %s
+    """, (teacher_id,))
+
+    teacher = cursor.fetchone()
+
+    if not teacher:
+        cursor.close()
+        conn.close()
+        return jsonify({"error": "Teacher not found"}), 404
+
+    section_id = teacher["section_id"]
+
+    # insert announcement
+    cursor.execute("""
+        INSERT INTO Announcements
+        (teacher_id, section_id, message, created_at)
+        VALUES (%s, %s, %s, NOW())
+    """, (teacher_id, section_id, message))
+
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({"message": "Announcement sent successfully"})
