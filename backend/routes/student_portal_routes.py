@@ -180,3 +180,62 @@ def get_teachers_for_student(student_id):
     conn.close()
 
     return jsonify(teachers)
+
+
+@student_portal_bp.route("/timetable/<int:student_id>", methods=["GET"])
+def get_student_timetable(student_id):
+
+    conn = get_db_connection()
+    cursor = conn.cursor()
+
+    # Step 1: get student's section
+    cursor.execute("""
+        SELECT section_id
+        FROM Students
+        WHERE student_id = %s
+    """, (student_id,))
+
+    student = cursor.fetchone()
+
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+
+    section_id = student[0]
+
+    # Step 2: get timetable
+    cursor.execute("""
+        SELECT day_of_week,
+               period1, period2, period3,
+               period4, period5, period6, period7
+        FROM daily_timetable
+        WHERE section_id = %s
+        ORDER BY
+        CASE
+            WHEN day_of_week='Monday' THEN 1
+            WHEN day_of_week='Tuesday' THEN 2
+            WHEN day_of_week='Wednesday' THEN 3
+            WHEN day_of_week='Thursday' THEN 4
+            WHEN day_of_week='Friday' THEN 5
+        END
+    """, (section_id,))
+
+    rows = cursor.fetchall()
+
+    timetable = []
+
+    for row in rows:
+        timetable.append({
+            "day": row[0],
+            "periods": [
+                row[1], row[2], row[3],
+                row[4], row[5], row[6], row[7]
+            ]
+        })
+
+    cursor.close()
+    conn.close()
+
+    return jsonify({
+        "section_id": section_id,
+        "timetable": timetable
+    })
