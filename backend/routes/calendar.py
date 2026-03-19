@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify
 from services.db import get_db_connection
+from datetime import timedelta
 
 calendar_bp = Blueprint("calendar", __name__)
 
@@ -8,7 +9,6 @@ calendar_bp = Blueprint("calendar", __name__)
 # ---------------------------------------------------
 @calendar_bp.route("/add", methods=["POST"])
 def add_event():
-
     data = request.json
 
     conn = get_db_connection()
@@ -30,7 +30,6 @@ def add_event():
     ))
 
     conn.commit()
-
     cursor.close()
     conn.close()
 
@@ -38,7 +37,7 @@ def add_event():
 
 
 # ---------------------------------------------------
-# GET ALL EVENTS FOR STUDENT
+# GET ALL EVENTS FOR STUDENT ✅ FIXED
 # ---------------------------------------------------
 @calendar_bp.route("/<int:student_id>", methods=["GET"])
 def get_events(student_id):
@@ -55,14 +54,23 @@ def get_events(student_id):
 
     events = cursor.fetchall()
 
+    # ✅ FIX: Convert date & time to JSON-safe format
+    for e in events:
+        if e.get("event_date"):
+            e["event_date"] = str(e["event_date"])
+
+        if isinstance(e.get("event_time"), timedelta):
+            e["event_time"] = str(e["event_time"])
+
     cursor.close()
     conn.close()
 
-    return jsonify({"events":events})
+    # ✅ IMPORTANT: return list (not wrapped)
+    return jsonify(events)
 
 
 # ---------------------------------------------------
-# FAST MONTH LOADER (FRONTEND PERFORMANCE BOOST)
+# FAST MONTH LOADER
 # ---------------------------------------------------
 @calendar_bp.route("/month/<int:student_id>", methods=["GET"])
 def get_month_events(student_id):
@@ -84,19 +92,18 @@ def get_month_events(student_id):
 
     events = cursor.fetchall()
 
+    # ✅ Convert date & time properly
+    for e in events:
+        if e.get("event_date"):
+            e["event_date"] = str(e["event_date"])
+
+        if isinstance(e.get("event_time"), timedelta):
+            e["event_time"] = str(e["event_time"])
+
     cursor.close()
     conn.close()
 
-    # 🔧 Convert date/time to string
-    for e in events:
-        if e["event_date"]:
-            e["event_date"] = str(e["event_date"])
-        if e["event_time"]:
-            e["event_time"] = str(e["event_time"])
-
-
-
-    return jsonify({"events":events})
+    return jsonify(events)
 
 
 # ---------------------------------------------------
@@ -115,7 +122,6 @@ def mark_complete(event_id):
     """,(event_id,))
 
     conn.commit()
-
     cursor.close()
     conn.close()
 
@@ -133,7 +139,6 @@ def execute_ai_action(action_json):
     cursor = conn.cursor()
 
     if action == "add_event":
-
         cursor.execute("""
             INSERT INTO calendar_events
             (student_id,title,event_date,event_time,event_type,important,created_by)
@@ -148,7 +153,6 @@ def execute_ai_action(action_json):
         ))
 
     elif action == "mark_complete":
-
         cursor.execute("""
             UPDATE calendar_events
             SET status='completed'
@@ -156,10 +160,8 @@ def execute_ai_action(action_json):
         """,(action_json["event_id"],))
 
     conn.commit()
-
     cursor.close()
     conn.close()
 
     return {"message":"AI action executed"}
-
 
