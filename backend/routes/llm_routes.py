@@ -17,41 +17,25 @@ def chat():
     message = data.get("message")
 
     try:
-        # Step 1: create state
         state = {
             "user_query": message
         }
 
-        # Step 2: detect intent
-        state = intent_agent(state)
-        intent = state.get("intent")
+        # Run LangGraph
+        from llm.agents.agent_graph import build_graph
+        graph = build_graph()
 
-        # 🔥 Step 3: handle based on intent
-        if intent == "learning_query":
-
-            # call rag agent (your main AI logic)
-            state = rag_agent(state)
-
-            return jsonify({
-                "type": "learning",
-                "explanation": state.get("answer")
-            })
-
-        elif intent == "calendar_action":
-            return jsonify({
-                "type": "calendar",
-                "message": "Calendar feature coming soon"
-            })
+        result = graph.invoke(state)
 
         return jsonify({
-            "type": "unknown",
-            "message": "Could not understand"
+            "response": result.get("final_response"),
+            "intent": result.get("intent"),
+            "debug": result.get("debug")
         })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-
-
+    
     
     
