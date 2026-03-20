@@ -1,5 +1,6 @@
 import sys
 import os
+import traceback
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
@@ -15,7 +16,6 @@ def chat():
     try:
         # 🔥 import graph INSIDE function (important)
         from llm.agents.agent_graph import build_graph
-
         graph = build_graph()
 
         state = {
@@ -31,6 +31,8 @@ def chat():
         })
 
     except Exception as e:
-        print("ERROR:", e)  # 👈 VERY IMPORTANT
+        print("ERROR:", e)
+        traceback.print_exc()   # 🔥 THIS LINE IS KEY
         return jsonify({"error": str(e)}), 500
+    
     
