@@ -23,7 +23,7 @@ def add_event():
         data["title"],
         data.get("description"),
         data["event_date"],
-        data.get("event_time"),
+        data.get("event_time")  or "00:00:00",
         data.get("event_type","task"),
         data.get("important",False),
         data.get("created_by","student")
