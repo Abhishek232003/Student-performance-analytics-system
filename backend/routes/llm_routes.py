@@ -19,7 +19,8 @@ def chat():
         graph = build_graph()
 
         state = {
-            "user_query": message
+            "user_query": message,
+            "student_id": data.get("student_id")
         }
 
         result = graph.invoke(state)
