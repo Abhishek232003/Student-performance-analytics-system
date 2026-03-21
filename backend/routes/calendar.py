@@ -139,6 +139,10 @@ def execute_ai_action(action_json):
     cursor = conn.cursor()
 
     if action == "add_event":
+
+        if not action_json.get("student_id"):
+            return {"error": "student_id missing"}
+         
         cursor.execute("""
             INSERT INTO calendar_events
             (student_id,title,event_date,event_time,event_type,important,created_by)
@@ -164,4 +168,5 @@ def execute_ai_action(action_json):
     conn.close()
 
     return {"message":"AI action executed"}
+
 
