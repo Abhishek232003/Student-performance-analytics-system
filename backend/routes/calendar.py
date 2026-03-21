@@ -37,24 +37,41 @@ def add_event():
 
 
 # ---------------------------------------------------
-# GET ALL EVENTS FOR STUDENT ✅ FIXED
+# GET ALL EVENTS FOR USER (FIXED 🔥)
 # ---------------------------------------------------
-@calendar_bp.route("/<int:student_id>", methods=["GET"])
-def get_events(student_id):
+@calendar_bp.route("/<int:user_id>", methods=["GET"])
+def get_events(user_id):
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
+    # 🔥 STEP 1: map user_id → student_id
+    cursor.execute("""
+        SELECT student_id
+        FROM Students
+        WHERE user_id = %s
+    """, (user_id,))
+
+    result = cursor.fetchone()
+
+    if not result:
+        cursor.close()
+        conn.close()
+        return jsonify([])
+
+    student_id = result["student_id"]
+
+    # 🔥 STEP 2: fetch events using student_id
     cursor.execute("""
         SELECT *
         FROM calendar_events
         WHERE student_id = %s
-        ORDER BY event_date,event_time
-    """,(student_id,))
+        ORDER BY event_date, event_time
+    """, (student_id,))
 
     events = cursor.fetchall()
 
-    # ✅ FIX: Convert date & time to JSON-safe format
+    # ✅ Convert date & time to JSON-safe format
     for e in events:
         if e.get("event_date"):
             e["event_date"] = str(e["event_date"])
@@ -65,7 +82,6 @@ def get_events(student_id):
     cursor.close()
     conn.close()
 
-    # ✅ IMPORTANT: return list (not wrapped)
     return jsonify(events)
 
 
