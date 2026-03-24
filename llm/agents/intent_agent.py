@@ -46,10 +46,10 @@ Return ONLY the label.
 
     state["intent"] = intent
 
-    state["debug"] = {
+    '''state["debug"] = {
         "query": query,
         "raw_intent": raw_intent,
         "final_intent": intent
-    }
-
+    }'''
+    
     return state

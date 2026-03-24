@@ -6,3 +6,4 @@ class AgentState(TypedDict):
     rag_response: Optional[str]
     action_json: Optional[Dict]
     final_response: Optional[str]
+    student_id: Optional[int]

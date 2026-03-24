@@ -4,7 +4,6 @@ from llm.tools.calendar_api import create_calendar_event
 from llm.utils.date_parser import normalize_date
 from datetime import datetime
 
-
 def calendar_agent(state):
 
     query = state["user_query"]
@@ -49,11 +48,9 @@ Do not include explanations.
 
     # Call LLM
     response = ask_llama(prompt)
-
-    # Debug output
     print("LLM RAW RESPONSE:", response)
 
-    # Extract JSON safely
+    # Parse JSON
     action_json = safe_json_parse(response)
 
     if action_json:
@@ -67,33 +64,44 @@ Do not include explanations.
             action_json["event_date"] = normalized_date
 
         # -------------------------
-        # TIME NORMALIZATION
+        # TIME NORMALIZATION (FINAL FIX 🔥)
         # -------------------------
         event_time = action_json.get("event_time")
 
         if event_time:
             try:
-                # Handle "6pm"
-                parsed_time = datetime.strptime(event_time.strip().lower(), "%I%p")
+                clean_time = event_time.strip().lower()
+
+                # 10 am
+                parsed_time = datetime.strptime(clean_time, "%I %p")
                 action_json["event_time"] = parsed_time.strftime("%H:%M:%S")
 
             except ValueError:
                 try:
-                    # Handle "6:30pm"
-                    parsed_time = datetime.strptime(event_time.strip().lower(), "%I:%M%p")
+                    # 10am
+                    parsed_time = datetime.strptime(clean_time, "%I%p")
                     action_json["event_time"] = parsed_time.strftime("%H:%M:%S")
 
                 except ValueError:
                     try:
-                        parsed_time = datetime.strptime(event_time.strip(), "%I:%M %p")
+                        # 10:30 pm
+                        parsed_time = datetime.strptime(clean_time, "%I:%M %p")
                         action_json["event_time"] = parsed_time.strftime("%H:%M:%S")
-                    
+
                     except ValueError:
-                        # If already correct, leave it
-                        pass
+                        try:
+                            # 10:30pm
+                            parsed_time = datetime.strptime(clean_time, "%I:%M%p")
+                            action_json["event_time"] = parsed_time.strftime("%H:%M:%S")
+
+                        except ValueError:
+                            action_json["event_time"] = None
+        else:
+            # 🔥 IMPORTANT: no time → valid default (so calendar shows it)
+            action_json["event_time"] = "00:00:00"
 
         # -------------------------
-        # SUBJECT DETECTION (fallback)
+        # SUBJECT DETECTION
         # -------------------------
         query_lower = query.lower()
 
@@ -112,10 +120,23 @@ Do not include explanations.
         elif not action_json.get("event_type"):
             action_json["event_type"] = "general"
 
-        # Save action in graph state
+        # -------------------------
+        # ADD STUDENT ID (CRITICAL)
+        # -------------------------
+        student_id = state.get("student_id")
+
+        if not student_id:
+             return {"error": "student_id missing in state"}
+
+        action_json["student_id"] = student_id
+
+        # Debug
+        print("FINAL ACTION:", action_json)
+
+        # Save to state
         state["action_json"] = action_json
 
-        # Call backend API
+        # Call backend
         result = create_calendar_event(action_json)
 
         state["final_response"] = result

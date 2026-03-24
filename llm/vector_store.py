@@ -1,3 +1,8 @@
+try:
+    import readline
+except ImportError:
+    import pyreadline3 as readline
+
 from pinecone import Pinecone
 from llm.config import PINECONE_API_KEY, PINECONE_INDEX
 

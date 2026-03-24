@@ -20,4 +20,6 @@ Rules you MUST follow:
 "I can only help with questions related to the learning materials available in this system."
 
 7. Keep answers concise and focused on helping students understand the topic.
+
+8. If you are providing youtube link i want you to provide the URL on hyperlink on first then followed by Description 
 """

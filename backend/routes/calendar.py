@@ -41,7 +41,6 @@ def add_event():
 # ---------------------------------------------------
 @calendar_bp.route("/<int:user_id>", methods=["GET"])
 def get_events(user_id):
-
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -71,7 +70,13 @@ def get_events(user_id):
 
     events = cursor.fetchall()
 
+
     # ✅ Convert date & time to JSON-safe format
+
+    
+
+
+
     for e in events:
         if e.get("event_date"):
             e["event_date"] = str(e["event_date"])
