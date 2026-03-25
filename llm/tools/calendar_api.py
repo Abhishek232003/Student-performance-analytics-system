@@ -27,7 +27,20 @@ def create_calendar_event(action_json):
         response = requests.post(BACKEND_URL, json=payload)
         print("🔥 API RESPONSE:", response.status_code, response.text)
         if response.status_code == 201:
+             # 🔥 NEW ADDITION (SAFE)
+            try:
+                res_json = response.json()
+                event_id = res_json.get("event_id")
+
+                if event_id:
+                    action_json["event_id"] = event_id
+                    print("✅ EVENT ID:", event_id)
+
+            except Exception:
+                pass  # don't break existing flow
+
             return "Calendar event successfully created."
+
 
         else:
             return f"Backend error: {response.text}"

@@ -29,11 +29,19 @@ def add_event():
         data.get("created_by","student")
     ))
 
+      # 🔥 NEW LINE (IMPORTANT)
+    event_id = cursor.lastrowid
+
     conn.commit()
     cursor.close()
     conn.close()
 
-    return jsonify({"message":"event added"}),201
+      # 🔥 UPDATED RESPONSE
+    return jsonify({
+        "message": "event added",
+        "event_id": event_id
+    }), 201
+
 
 
 # ---------------------------------------------------

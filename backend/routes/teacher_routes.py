@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from services.db import get_db_connection
 from ml.predictor import predict_risk  # make sure this function exists
+import requests
 
 teacher_bp = Blueprint("teacher", __name__)
 
@@ -167,34 +168,54 @@ def predict():
 # ==============================
 # 6️⃣ Notify (n8n integration placeholder)
 # ==============================
-@teacher_bp.route("/notify", methods=["POST"])
+@teacher_bp.route("/notify-student", methods=["POST"])
 def notify_student():
     data = request.json
-    student_id = data.get("student_id")
-
-    if not student_id:
-        return jsonify({"error": "Missing student_id"}), 400
+    student_id = data["student_id"]
 
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("""
-        SELECT email, name FROM Students WHERE student_id = %s
-    """, (student_id,))
-    student = cursor.fetchone()
+  
 
+    # ✅ Fetch email
+    cursor.execute("SELECT email FROM Students WHERE student_id=%s", (student_id,))
+    result = cursor.fetchone()
+
+    if not result:
+        cursor.close()
+        conn.close()
+        return {"error": "Student email not found"}, 404
+
+    payload = {
+        "student_id": student_id,
+        "email": result["email"],
+        "message": "You are identified as HIGH RISK. Please take action."
+    }
+
+    try:
+        response = requests.post(
+            "http://localhost:5678/webhook/notify-student",
+            json=payload
+        )
+
+        if response.status_code != 200:
+            return {"error": "n8n failed"}, 500
+
+    except Exception as e:
+        return {"error": str(e)}, 500
+
+    # ✅ Log it
+    cursor.execute("""
+        INSERT INTO Alerts_log (student_id, type, message)
+        VALUES (%s, 'risk', 'risk alert sent')
+    """, (student_id,))
+
+    conn.commit()
     cursor.close()
     conn.close()
 
-    if not student:
-        return jsonify({"error": "Student not found"}), 404
-
-    # Here you will later trigger n8n webhook
-    return jsonify({
-        "message": f"Notification triggered for {student['name']}",
-        "email": student["email"]
-    })
-
+    return {"message": "Notification sent"}
 # ==============================
 # 7️⃣ Get Requests for Teacher
 # ==============================
