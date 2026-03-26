@@ -1,7 +1,4 @@
-try:
-    import readline
-except ImportError:
-    import pyreadline3 as readline
+
 from flask import Flask
 from flask_cors import CORS
 from dotenv import load_dotenv
