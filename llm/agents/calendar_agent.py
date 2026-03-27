@@ -28,16 +28,6 @@ JSON format:
  "important": false
 }}
 
-Subject mapping rules:
-
-If the request contains "OS" → event_type = "OS"
-If the request contains "DSA" → event_type = "DSA"
-If the request contains "VLSI" → event_type = "VLSI"
-If the request contains "Robotics" → event_type = "Robotics"
-If the request contains "CAD" → event_type = "CAD"
-If the request contains "DSP" → event_type = "DSP"
-If no subject is mentioned → event_type = "general"
-
 User request:
 {query}
 
@@ -46,102 +36,127 @@ Return ONLY valid JSON.
 Do not include explanations.
 """
 
-    # Call LLM
+    # -------------------------
+    # CALL LLM
+    # -------------------------
     response = ask_llama(prompt)
     print("LLM RAW RESPONSE:", response)
 
-    # Parse JSON
     action_json = safe_json_parse(response)
 
-    if action_json:
+    if not action_json:
+        state["final_response"] = "Could not extract a valid calendar action."
+        return state
 
-        # -------------------------
-        # DATE NORMALIZATION
-        # -------------------------
-        normalized_date = normalize_date(action_json.get("event_date"))
+    # -------------------------
+    # 🔥 DATE NORMALIZATION + FORCE CURRENT YEAR
+    # -------------------------
+    raw_date = action_json.get("event_date")
 
-        if normalized_date:
-            action_json["event_date"] = normalized_date
+    normalized_date = normalize_date(raw_date)
 
-        # -------------------------
-        # TIME NORMALIZATION (FINAL FIX 🔥)
-        # -------------------------
-        event_time = action_json.get("event_time")
+    if normalized_date:
+        action_json["event_date"] = normalized_date
 
-        if event_time:
-            try:
-                clean_time = event_time.strip().lower()
+        try:
+            parsed_date = datetime.strptime(action_json["event_date"], "%Y-%m-%d")
+            today = datetime.today()
 
-                # 10 am
+            # 🚨 FIX: if LLM gives past year (like 2023)
+            if parsed_date.year < today.year:
+                parsed_date = parsed_date.replace(year=today.year)
+
+            # 🚨 FIX: if still past date → move to next year
+            if parsed_date.date() < today.date():
+                parsed_date = parsed_date.replace(year=parsed_date.year + 1)
+
+            action_json["event_date"] = parsed_date.strftime("%Y-%m-%d")
+
+        except Exception as e:
+            print("DATE FIX ERROR:", e)
+
+    # -------------------------
+    # 🔥 TIME NORMALIZATION (FULLY ROBUST)
+    # -------------------------
+    event_time = action_json.get("event_time")
+
+    if event_time:
+        try:
+            clean_time = str(event_time).strip().lower()
+
+            # ✅ HH:MM:SS
+            if len(clean_time.split(":")) == 3 and "am" not in clean_time and "pm" not in clean_time:
+                parsed_time = datetime.strptime(clean_time, "%H:%M:%S")
+
+            # ✅ 3:20 am / 5:30 pm
+            elif ":" in clean_time and ("am" in clean_time or "pm" in clean_time):
+                parsed_time = datetime.strptime(clean_time, "%I:%M %p")
+
+            # ✅ 3 pm
+            elif "am" in clean_time or "pm" in clean_time:
                 parsed_time = datetime.strptime(clean_time, "%I %p")
+
+            # ✅ 14:30
+            elif len(clean_time.split(":")) == 2:
+                parsed_time = datetime.strptime(clean_time, "%H:%M")
+
+            else:
+                parsed_time = None
+
+            if parsed_time:
                 action_json["event_time"] = parsed_time.strftime("%H:%M:%S")
+            else:
+                action_json["event_time"] = None
 
-            except ValueError:
-                try:
-                    # 10am
-                    parsed_time = datetime.strptime(clean_time, "%I%p")
-                    action_json["event_time"] = parsed_time.strftime("%H:%M:%S")
-
-                except ValueError:
-                    try:
-                        # 10:30 pm
-                        parsed_time = datetime.strptime(clean_time, "%I:%M %p")
-                        action_json["event_time"] = parsed_time.strftime("%H:%M:%S")
-
-                    except ValueError:
-                        try:
-                            # 10:30pm
-                            parsed_time = datetime.strptime(clean_time, "%I:%M%p")
-                            action_json["event_time"] = parsed_time.strftime("%H:%M:%S")
-
-                        except ValueError:
-                            action_json["event_time"] = None
-        else:
-            # 🔥 IMPORTANT: no time → valid default (so calendar shows it)
-            action_json["event_time"] = "00:00:00"
-
-        # -------------------------
-        # SUBJECT DETECTION
-        # -------------------------
-        query_lower = query.lower()
-
-        if "os" in query_lower:
-            action_json["event_type"] = "OS"
-        elif "dsa" in query_lower:
-            action_json["event_type"] = "DSA"
-        elif "vlsi" in query_lower:
-            action_json["event_type"] = "VLSI"
-        elif "robotics" in query_lower:
-            action_json["event_type"] = "Robotics"
-        elif "cad" in query_lower:
-            action_json["event_type"] = "CAD"
-        elif "dsp" in query_lower:
-            action_json["event_type"] = "DSP"
-        elif not action_json.get("event_type"):
-            action_json["event_type"] = "general"
-
-        # -------------------------
-        # ADD STUDENT ID (CRITICAL)
-        # -------------------------
-        student_id = state.get("student_id")
-
-        if not student_id:
-             return {"error": "student_id missing in state"}
-
-        action_json["student_id"] = student_id
-
-        # Debug
-        print("FINAL ACTION:", action_json)
-
-        # Save to state
-        state["action_json"] = action_json
-
-        # Call backend
-        result = create_calendar_event(action_json)
-
-        state["final_response"] = result
+        except Exception as e:
+            print("TIME PARSE ERROR:", clean_time, e)
+            action_json["event_time"] = None
 
     else:
-        state["final_response"] = "Could not extract a valid calendar action."
+        action_json["event_time"] = None
+
+    # -------------------------
+    # SUBJECT DETECTION
+    # -------------------------
+    query_lower = query.lower()
+
+    if "os" in query_lower:
+        action_json["event_type"] = "OS"
+    elif "dsa" in query_lower:
+        action_json["event_type"] = "DSA"
+    elif "vlsi" in query_lower:
+        action_json["event_type"] = "VLSI"
+    elif "robotics" in query_lower:
+        action_json["event_type"] = "Robotics"
+    elif "cad" in query_lower:
+        action_json["event_type"] = "CAD"
+    elif "dsp" in query_lower:
+        action_json["event_type"] = "DSP"
+    elif not action_json.get("event_type"):
+        action_json["event_type"] = "general"
+
+    # -------------------------
+    # ADD STUDENT ID
+    # -------------------------
+    student_id = state.get("student_id")
+
+    if not student_id:
+        return {"error": "student_id missing in state"}
+
+    action_json["student_id"] = student_id
+
+    # -------------------------
+    # DEBUG
+    # -------------------------
+    print("FINAL ACTION:", action_json)
+
+    # -------------------------
+    # SAVE + CALL BACKEND
+    # -------------------------
+    state["action_json"] = action_json
+
+    result = create_calendar_event(action_json)
+
+    state["final_response"] = result
 
     return state

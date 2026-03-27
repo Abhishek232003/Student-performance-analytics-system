@@ -16,7 +16,8 @@ from routes.llm_routes import llm_bp
 load_dotenv()
 
 app = Flask(__name__, static_folder="static")
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})
+app.config['CORS_HEADERS'] = 'Content-Type'
 
 # Register routes
 app.register_blueprint(auth_bp, url_prefix="/api/auth")
