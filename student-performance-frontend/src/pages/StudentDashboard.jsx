@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import StudentSidebar from "../components/StudentSidebar";
+import ChatWidget from "../components/ChatWidget";
+
 
 export default function StudentDashboard({ setLoading }) {
 
@@ -102,7 +104,7 @@ export default function StudentDashboard({ setLoading }) {
         )}
 
       </div>
-
+          <ChatWidget  isPopup={true} />
     </div>
   );
 }

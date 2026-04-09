@@ -14,4 +14,8 @@ def ask_llama(prompt):
 
     result = response.json()
 
-    return result["response"]
+    # handle error safely
+    if "error" in result:
+        return f"LLM Error: {result['error']}"
+
+    return result.get("response") or result.get("message") or str(result)

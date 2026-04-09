@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import Sidebar from "../components/Sidebar";
 
+
 export default function Requests() {
 
   const teacherId = localStorage.getItem("teacher_id");
@@ -131,7 +132,7 @@ export default function Requests() {
 
                   <button
                     onClick={() => updateStatus(req.id, "Approved")}
-                    className="bg-purple-600 text-white px-4 py-2 rounded-full"
+                    className="bg-green-600 text-white px-4 py-2 rounded-full"
                   >
                     Approve
                   </button>
@@ -160,7 +161,8 @@ export default function Requests() {
         </div>
 
       </div>
-
+          
+        
     </div>
   );
 }

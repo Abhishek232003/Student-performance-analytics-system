@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import StudentSidebar from "../components/StudentSidebar";
-
+import ChatWidget from "../components/ChatWidget";
 export default function StudentAnnouncements() {
 
   const studentId = localStorage.getItem("student_id");
@@ -73,7 +73,7 @@ export default function StudentAnnouncements() {
         </div>
 
       </div>
-
+         <ChatWidget /> 
     </div>
   );
 }

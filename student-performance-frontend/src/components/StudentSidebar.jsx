@@ -35,7 +35,7 @@ export default function StudentSidebar() {
           {/* ✅ NEW CALENDAR LINK */}
           <Link to="/calendar">Calendar</Link>
 
-          <Link to="/student-learnings">My Learnings</Link>
+          <Link to="/student-learnings"> </Link>
 
         </nav>
       </div>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getTimetable } from "../services/api";
-
+import ChatWidget from "../components/ChatWidget";
 export default function Timetable() {
   const [data, setData] = useState([]);
 
@@ -65,6 +65,7 @@ export default function Timetable() {
 
         </table>
       </div>
+      <ChatWidget />
     </div>
   );
 }
