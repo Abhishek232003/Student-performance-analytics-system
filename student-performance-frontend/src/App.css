@@ -1,0 +1,62 @@
+#root {
+  margin: 0;
+  padding: 0;
+}
+
+/* ===== MODERN CALENDAR ===== */
+.modern-calendar {
+  border: none !important;
+  width: 100% !important;
+  max-width: 420px;
+  font-family: "Inter", sans-serif;
+}
+
+/* REMOVE WEEKDAY UNDERLINE */
+.react-calendar__month-view__weekdays abbr {
+  text-decoration: none !important;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* NAVIGATION */
+.react-calendar__navigation button {
+  color: #4f46e5 !important;
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* TILES */
+.react-calendar__tile {
+  padding: 14px 6px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+
+/* HOVER EFFECT */
+.react-calendar__tile:hover {
+  background: #eef2ff !important;
+  transform: scale(1.05);
+}
+
+/* SELECTED DATE */
+.react-calendar__tile--active {
+  background: linear-gradient(135deg, #4f46e5, #6366f1) !important;
+  color: white !important;
+  border-radius: 10px;
+}
+
+/* TODAY */
+.react-calendar__tile--now {
+  background: #fde68a !important;
+  border-radius: 10px;
+}
+
+/* REMOVE DEFAULT BORDER GRID */
+.react-calendar__month-view__days__day {
+  border: none !important;
+}
+
+/* SMOOTH LOOK */
+.react-calendar {
+  border: none !important;
+}
